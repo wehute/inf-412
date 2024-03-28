@@ -7,6 +7,8 @@ Basic example for a bot that uses inline keyboards. For an in-depth explanation,
  https://github.com/python-telegram-bot/python-telegram-bot/wiki/InlineKeyboard-Example.
 """
 import logging
+import random
+import os
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -25,15 +27,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a message with three inline buttons attached."""
     keyboard = [
         [
-            InlineKeyboardButton("Анжуманя", callback_data="1"),
-            InlineKeyboardButton("Апатя", callback_data="2"),
+            InlineKeyboardButton(".", callback_data="1"),
+            InlineKeyboardButton(".", callback_data="2"),
         ],
-        [InlineKeyboardButton("Маня величуя", callback_data="3")],
+        [InlineKeyboardButton(".", callback_data="3")],
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text("Выбери че хош:", reply_markup=reply_markup)
+    await update.message.reply_text("Сделай свой осознанный выбор. Иначе, возможно, ты в будущем будешь лежать в своей постели после тяжелого дня, пытаясь уснуть, но вспомнишь, что хотел выбрать другой вариант.", reply_markup=reply_markup)
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -47,23 +49,36 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     folder = ''
 
     if query.data == '1':
-        folder = 'cats'
+        folder = 'images/cats'
     elif query.data == '2':
-        folder = 'dogs'
+        folder = 'images/dogs'
     else:
-        folder = 'cats'
-    
-    img_path = f'images/{folder}/1.jpg'
+        d = []
+        img = 'images'
+        for files in os.scandir(img):
+            d.append(files.name)
+        randfolder = random.choice(d)
+        folder = f'images/{randfolder}'
 
 
-    await query.edit_message_text(text=f"Selected option: {query.data}")
+    c = []
+    for files in os.scandir(folder):
+            c.append(files.name)
+    image_name = random.choice(c)
+
+    image_path = f'{folder}/{image_name}'
+
+    await query.message.reply_photo(
+        photo=open(image_path, 'rb'),
+    )
+
+    await query.edit_message_text(text=f"Ты выбрал: {query.data}")
     
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Displays info on how to use the bot."""
     await update.message.reply_text("Use /start to test this bot.")
-
 
 def main() -> None:
     """Run the bot."""
