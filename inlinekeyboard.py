@@ -27,15 +27,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a message with three inline buttons attached."""
     keyboard = [
         [
-            InlineKeyboardButton(".", callback_data="1"),
-            InlineKeyboardButton(".", callback_data="2"),
+            InlineKeyboardButton("Котики", callback_data="1"),
+            InlineKeyboardButton("Собакены", callback_data="2"),
         ],
-        [InlineKeyboardButton(".", callback_data="3")],
+        [InlineKeyboardButton("Довериться судьбе", callback_data="3")],
+        [
+            InlineKeyboardButton("Кличка для котейки", callback_data="4"),
+            InlineKeyboardButton("Кличка для собаки", callback_data="5"),
+        ]
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text("Сделай свой осознанный выбор. Иначе, возможно, ты в будущем будешь лежать в своей постели после тяжелого дня, пытаясь уснуть, но вспомнишь, что хотел выбрать другой вариант.", reply_markup=reply_markup)
+    await update.message.reply_text("Жмякай на кнопку", reply_markup=reply_markup)
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -47,33 +51,59 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await query.answer()
 
     folder = ''
+    txt = ''
 
     if query.data == '1':
         folder = 'images/cats'
     elif query.data == '2':
         folder = 'images/dogs'
-    else:
+    elif query.data == '3':
         d = []
         img = 'images'
         for files in os.scandir(img):
             d.append(files.name)
         randfolder = random.choice(d)
         folder = f'images/{randfolder}'
+    elif query.data == '4':
+        txt = open('cat_name.txt', 'r')
+    elif query.data == '5':
+        txt = open('dog_name.txt', 'r')
 
+    def randomname(txt):
+        t = []
+        for i in txt:
+            t.append(i)
+        name = random.choice(t)
+        return name
 
-    c = []
-    for files in os.scandir(folder):
+    if folder == '':
+        await query.message.reply_text(
+            text = f'Кличка: {randomname(txt)}'
+        )
+    else:
+        c = []
+        for files in os.scandir(folder):
             c.append(files.name)
-    image_name = random.choice(c)
-
-    image_path = f'{folder}/{image_name}'
-
-    await query.message.reply_photo(
-        photo=open(image_path, 'rb'),
-    )
-
+        image_name = random.choice(c)
+        
+        image_path = f'{folder}/{image_name}'
+        
+        await query.message.reply_photo(
+            photo=open(image_path, 'rb'),
+        )
+        
+        if query.data == '1':
+            txt2 = open('cat_name.txt', 'r')
+            await query.message.reply_text(
+            text=f'Кличка: {randomname(txt2)}'
+            )
+        elif query.data == '2':
+            txt3 = open('dog_name.txt', 'r')
+            await query.message.reply_text(
+            text=f'Кличка: {randomname(txt3)}'
+            )
+     
     await query.edit_message_text(text=f"Ты выбрал: {query.data}")
-    
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
